@@ -43,18 +43,18 @@ t = 0
 
 
 time.sleep(3)
-servo1.move(35)
-servo2.move(205)
+servo1.move(120)
+servo2.move(120)
 
 time.sleep(3)
-servo3.move(45)
-servo4.move(190)
+servo3.move(120)
+servo4.move(120)
 
 time.sleep(3)
-servo5.move(180)
-servo6.move(15)
+servo5.move(120)
+servo6.move(120)
 
 time.sleep(3)
-servo7.move(180)
-servo8.move(20)
+servo7.move(120)
+servo8.move(120)
 time.sleep(3)
