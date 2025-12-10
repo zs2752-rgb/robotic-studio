@@ -48,13 +48,13 @@ servo2.move(60)
 
 time.sleep(3)
 servo3.move(100)
-servo4.move(150)
+servo4.move(180)
 
 time.sleep(3)
 servo5.move(130)
-servo6.move(160)
+servo6.move(180)
 
 time.sleep(3)
 servo7.move(100)
-servo8.move(60)
+servo8.move(40)
 time.sleep(3)
