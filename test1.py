@@ -52,7 +52,7 @@ def read_current_pose(servos):
 
 
 def go_to_pose_smooth(servos, start_pose, target_pose,
-                      duration=3.0, steps=80):
+                      duration=1.5, steps=60):
     """从 start_pose 平滑移动到 target_pose"""
     for step in range(steps + 1):
         alpha = step / steps
