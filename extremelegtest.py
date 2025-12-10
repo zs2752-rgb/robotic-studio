@@ -43,8 +43,8 @@ t = 0
 
 
 time.sleep(3)
-servo1.move(120)
-servo2.move(120)
+servo1.move(100)
+servo2.move(70)
 
 time.sleep(3)
 servo3.move(120)
