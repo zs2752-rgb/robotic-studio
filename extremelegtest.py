@@ -56,5 +56,5 @@ servo6.move(120)
 
 time.sleep(3)
 servo7.move(120)
-servo8.move(120)
+servo8.move(110)
 time.sleep(3)
