@@ -5,7 +5,154 @@ import time
 PORT = "/dev/ttyUSB0"   # 如果不是这个端口，改成实际端口
 
 # 每条腿两个关节：HIP（髋）、KNEE（膝）
+SERVO_MAP = {from pylx16a.lx16a import *
+import time
+
+# ========= 串口和舵机分布 =========
+PORT = "/dev/ttyUSB0"   # 如果不是这个端口，改成实际端口
+
+# 每条腿两个关节：HIP（髋）、KNEE（膝）
 SERVO_MAP = {
+    "RF_HIP": 1,  # Right Front hip
+    "RF_KNEE": 2, # Right Front knee
+
+    "RR_HIP": 3,  # Right Rear hip
+    "RR_KNEE": 4, # Right Rear knee
+
+    "LR_HIP": 5,  # Left Rear hip
+    "LR_KNEE": 6, # Left Rear knee
+
+    "LF_HIP": 7,  # Left Front hip
+    "LF_KNEE": 8  # Left Front knee
+}
+
+# ==== 方向反的关节（你之前说 1、2、7、8 反了）====
+REVERSED_JOINTS = {
+    "RF_HIP",   # ID 1
+    "RF_KNEE",  # ID 2
+    "LF_HIP",   # ID 7
+    "LF_KNEE"   # ID 8
+}
+
+# 安全角度范围（可以跟你之前一样）
+ANGLE_MIN = 40
+ANGLE_MAX = 200
+ANGLE_SUM = ANGLE_MIN + ANGLE_MAX  # 用来做镜像：40 + 200 = 240
+
+# 逻辑空间中的“中立角”，方便你以后统一调整
+NEUTRAL_ANGLE = 120
+
+# ====== 站立目标姿态（逻辑角度）======
+# 这里先给一个比较保守的站立姿态，你可以根据实际效果再改：
+STAND_POSE = {
+    "RF_HIP": NEUTRAL_ANGLE,        # 髋基本中立
+    "RF_KNEE": NEUTRAL_ANGLE + 25,  # 膝稍微弯一些，脚压地
+
+    "RR_HIP": NEUTRAL_ANGLE,
+    "RR_KNEE": NEUTRAL_ANGLE + 25,
+
+    "LR_HIP": NEUTRAL_ANGLE,
+    "LR_KNEE": NEUTRAL_ANGLE + 25,
+
+    "LF_HIP": NEUTRAL_ANGLE,
+    "LF_KNEE": NEUTRAL_ANGLE + 25,
+}
+
+
+def logical_to_hw_angle(joint_name: str, logical_angle: float) -> float:
+    """逻辑角度 -> 实际发给舵机的角度（反向关节做镜像）"""
+    if joint_name in REVERSED_JOINTS:
+        return ANGLE_SUM - logical_angle
+    else:
+        return logical_angle
+
+
+def hw_to_logical_angle(joint_name: str, hw_angle: float) -> float:
+    """舵机实际角度 -> 逻辑角度（反向关节反向映射回去）"""
+    if joint_name in REVERSED_JOINTS:
+        return ANGLE_SUM - hw_angle
+    else:
+        return hw_angle
+
+
+def init_servos():
+    """初始化串口和舵机，设置角度限制"""
+    LX16A.initialize(PORT)
+
+    servos = {}
+    try:
+        for name, sid in SERVO_MAP.items():
+            s = LX16A(sid)
+            s.set_angle_limits(ANGLE_MIN, ANGLE_MAX)
+            servos[name] = s
+            print(f"{name} (ID={sid}) init OK")
+        time.sleep(0.5)
+    except ServoTimeoutError as e:
+        print(f"ERROR: servo ID {e.id_} not responding during init. Exit.")
+        raise
+
+    return servos
+
+
+def move_joint_logical(servos, joint_name: str, logical_angle: float):
+    """用逻辑角度控制单个关节"""
+    hw_angle = logical_to_hw_angle(joint_name, logical_angle)
+    servos[joint_name].move(hw_angle)
+
+
+def get_current_logical_angles(servos):
+    """读取每个舵机当前实际角度，转换成逻辑角度，返回 dict"""
+    current = {}
+    for name, s in servos.items():
+        try:
+            hw_angle = s.get_physical_angle()
+            logical = hw_to_logical_angle(name, hw_angle)
+            current[name] = logical
+            print(f"{name}: hw={hw_angle:.1f}°  logical={logical:.1f}°")
+        except ServoTimeoutError as e:
+            print(f"WARNING: cannot read angle from servo ID {e.id_}")
+    return current
+
+
+def go_to_pose_smooth(servos, start_pose, target_pose,
+                      duration=2.0, steps=60):
+    """
+    从 start_pose 平滑插值到 target_pose。
+    start_pose、target_pose 都是 {joint_name: logical_angle}。
+    """
+
+    for step in range(steps + 1):
+        alpha = step / steps  # 0 -> 1
+        for name in SERVO_MAP.keys():
+            if name not in target_pose or name not in start_pose:
+                continue
+            a0 = start_pose[name]
+            a1 = target_pose[name]
+            a = a0 + (a1 - a0) * alpha
+            move_joint_logical(servos, name, a)
+        time.sleep(duration / steps)
+
+
+def stand_up(servos):
+    """从当前姿态平滑站起来"""
+    print("Reading current angles...")
+    current_pose = get_current_logical_angles(servos)
+
+    print("\nStanding up...")
+    go_to_pose_smooth(servos, current_pose, STAND_POSE,
+                      duration=3.0, steps=80)
+    print("Stand-up motion done.")
+
+
+def main():
+    servos = init_servos()
+    # 直接从当前姿态站起来
+    stand_up(servos)
+
+
+if __name__ == "__main__":
+    main()
+
     "RF_HIP": 1,  # Right Front hip
     "RF_KNEE": 2, # Right Front knee
 
