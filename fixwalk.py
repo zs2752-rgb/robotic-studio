@@ -22,15 +22,15 @@ STAND_POSE = {
 # 抬脚高度
 LIFT_KNEE_DELTA = 15
 # 髋关节前后摆动幅度（正负决定方向；如果整体往后走就反号）
-HIP_SWING_DELTA = +15
+HIP_SWING_DELTA = +20
 
 # 左右修正系数：如果发现总是向一边转，可以微调
 LEFT_GAIN  = 1.0   # 作用在左边两条腿（5,6,7,8）
 RIGHT_GAIN = 1.0   # 作用在右边两条腿（1,2,3,4）
 
-STEP_DURATION = 0.2   # 每个相位时间
-STEP_STEPS    = 15    # 每个相位插值步数
-NUM_CYCLES    = 4     # 走几轮（每轮两步：对角1 + 对角2）
+STEP_DURATION = 0.1   # 每个相位时间
+STEP_STEPS    = 10    # 每个相位插值步数
+NUM_CYCLES    = 8     # 走几轮（每轮两步：对角1 + 对角2）
 
 
 # ========== 基础函数 ==========
