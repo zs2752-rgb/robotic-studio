@@ -18,18 +18,20 @@ SERVO_MAP = {
     "LF_KNEE": 8
 }
 
-# ============= 修正反向舵机（现在是 1,2,5,6,7,8） =============
+# ========= 最新的方向反向关节 =========
+# 你确认 5,6,7 是反的；1,2 也是反的。
+# 8 你暂时没说反了，所以先不放进去。
 REVERSED_JOINTS = {
     "RF_HIP", "RF_KNEE",   # 1, 2
     "LR_HIP", "LR_KNEE",   # 5, 6
-    "LF_HIP", "LF_KNEE"    # 7, 8
+    "LF_HIP"               # 7
 }
 
 ANGLE_MIN = 40
 ANGLE_MAX = 200
 ANGLE_SUM = ANGLE_MIN + ANGLE_MAX  # 240
 
-# ===== 你记录的硬件初始角度（自己填上真实值）=====
+# ======（你需要填写你真实量到的角度）======
 HARDWARE_START_POSE = {
     "RF_HIP": 110,
     "RF_KNEE": 100,
@@ -38,22 +40,22 @@ HARDWARE_START_POSE = {
     "LR_HIP": 148,
     "LR_KNEE": 150,
     "LF_HIP": 120,
-    "LF_KNEE": 70
+    "LF_KNEE": 70   # 目前认为不反向
 }
 
-# ====== 更新后的更高站立姿态 ======
+# ====== 更高站立姿态 ======
 STAND_POSE = {
-    "RF_HIP": 110,
-    "RF_KNEE": 160,
+    "RF_HIP": 105,
+    "RF_KNEE": 170,
 
-    "RR_HIP": 110,
-    "RR_KNEE": 160,
+    "RR_HIP": 105,
+    "RR_KNEE": 170,
 
-    "LR_HIP": 110,
-    "LR_KNEE": 160,
+    "LR_HIP": 105,
+    "LR_KNEE": 170,
 
-    "LF_HIP": 110,
-    "LF_KNEE": 160
+    "LF_HIP": 105,
+    "LF_KNEE": 170
 }
 
 
@@ -98,11 +100,10 @@ def go_to_pose_smooth(servos, start_pose, end_pose,
 
 
 def stand_from_known_start(servos):
-    # 把硬件角度转换成逻辑角度
     logical_start = {}
     for name, hw in HARDWARE_START_POSE.items():
         logical_start[name] = hw_to_logical_angle(name, hw)
-        print(f"{name}: HW={hw}, Logical={logical_start[name]}")
+        print(f"{name}: HW={hw}, LOGICAL={logical_start[name]}")
 
     print("\nStanding up...")
     go_to_pose_smooth(servos, logical_start, STAND_POSE)
