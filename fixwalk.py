@@ -25,7 +25,7 @@ LIFT_KNEE_DELTA = 15
 HIP_SWING_DELTA = +35
 
 # 左右修正系数：如果发现总是向一边转，可以微调
-LEFT_GAIN  = 2   # 作用在左边两条腿（5,6,7,8）
+LEFT_GAIN  = 1.6   # 作用在左边两条腿（5,6,7,8）
 RIGHT_GAIN = 1.0   # 作用在右边两条腿（1,2,3,4）
 
 STEP_DURATION = 0.2   # 每个相位时间
