@@ -1,109 +1,116 @@
 from pylx16a.lx16a import *
 import time
 
-# ========= 串口和舵机分布 =========
 PORT = "/dev/ttyUSB0"
 
-SERVO_MAP = {
-    "RF_HIP": 1,
-    "RF_KNEE": 2,
+# 右前 & 右后（你说这四个方向现在是对的）
+RF_HIP  = 1
+RF_KNEE = 2
+RR_HIP  = 3
+RR_KNEE = 4
 
-    "RR_HIP": 3,
-    "RR_KNEE": 4,
-
-    "LR_HIP": 5,
-    "LR_KNEE": 6,
-
-    "LF_HIP": 7,
-    "LF_KNEE": 8
-}
-
-# ========= 只反 1,2,8；5,6,7 改成不反 =========
-REVERSED_JOINTS = {
-    "RF_HIP", "RF_KNEE",   # 舵机 1、2 继续反向
-    "LF_KNEE"              # 新增：舵机 8 反向
-    # 5,6,7 不在这里，所以现在按“正常方向”运动
-}
+# 左后 & 左前（我们将用 1–4 的镜像角度来控制）
+LR_HIP  = 5
+LR_KNEE = 6
+LF_HIP  = 7
+LF_KNEE = 8
 
 ANGLE_MIN = 40
 ANGLE_MAX = 200
-ANGLE_SUM = ANGLE_MIN + ANGLE_MAX  # 240
+ANGLE_SUM = ANGLE_MIN + ANGLE_MAX   # = 240，作为镜像的对称中心
 
-# ====== 这里填你实际测到的起始硬件角度 ======
-HARDWARE_START_POSE = {
-    "RF_HIP": 110,
-    "RF_KNEE": 100,
-    "RR_HIP": 130,
-    "RR_KNEE": 140,
-    "LR_HIP": 148,
-    "LR_KNEE": 150,
-    "LF_HIP": 120,
-    "LF_KNEE": 70
-}
+def mirror_angle(angle: float) -> float:
+    """
+    把右侧关节的角度镜像到左侧。
+    假设结构左右对称，且中间角在 120° 附近。
+    """
+    return ANGLE_SUM - angle
 
-# ====== 站立姿态（如果之前那版还不错就先用它）======
-STAND_POSE = {
-    "RF_HIP": 105,
-    "RF_KNEE": 170,
-
-    "RR_HIP": 105,
-    "RR_KNEE": 170,
-
-    "LR_HIP": 105,
-    "LR_KNEE": 170,
-
-    "LF_HIP": 105,
-    "LF_KNEE": 170
-}
-
-def hw_to_logical_angle(joint_name, hw):
-    if joint_name in REVERSED_JOINTS:
-        return ANGLE_SUM - hw
-    return hw
-
-def logical_to_hw_angle(joint_name, logical):
-    if joint_name in REVERSED_JOINTS:
-        return ANGLE_SUM - logical
-    return logical
 
 def init_servos():
     LX16A.initialize(PORT)
     servos = {}
-    for name, sid in SERVO_MAP.items():
+
+    # 创建 1–8 号舵机对象并设置限位
+    for sid in range(1, 9):
         s = LX16A(sid)
         s.set_angle_limits(ANGLE_MIN, ANGLE_MAX)
-        servos[name] = s
-        print(f"{name} (ID={sid}) init OK")
+        servos[sid] = s
+        print(f"Servo {sid} init OK")
+
+    time.sleep(0.5)
     return servos
 
-def move_joint(servos, name, logical_angle):
-    hw_angle = logical_to_hw_angle(name, logical_angle)
-    servos[name].move(hw_angle)
 
-def go_to_pose_smooth(servos, start_pose, end_pose,
-                      duration=3.0, steps=80):
-    for step in range(steps + 1):
-        alpha = step / steps
-        for name in SERVO_MAP.keys():
-            a0 = start_pose[name]
-            a1 = end_pose[name]
-            a = a0 + (a1 - a0) * alpha
-            move_joint(servos, name, a)
-        time.sleep(duration / steps)
+def move_right_and_mirror(servos,
+                          rf_hip, rf_knee,
+                          rr_hip, rr_knee):
+    """
+    只指定右前/右后的四个角度，
+    左前/左后自动用镜像角度。
+    所有角度都直接用“硬件角度”（0~240）。
+    """
 
-def stand_from_known_start(servos):
-    logical_start = {}
-    for name, hw in HARDWARE_START_POSE.items():
-        logical_start[name] = hw_to_logical_angle(name, hw)
-        print(f"{name}: HW={hw}, LOGICAL={logical_start[name]}")
+    # ---- 右侧：直接用给定的角度 ----
+    servos[RF_HIP].move(rf_hip)
+    servos[RF_KNEE].move(rf_knee)
+    servos[RR_HIP].move(rr_hip)
+    servos[RR_KNEE].move(rr_knee)
 
-    print("\nStanding up...")
-    go_to_pose_smooth(servos, logical_start, STAND_POSE)
-    print("Done.")
+    # ---- 左侧：用右侧的镜像角度 ----
+    servos[LF_HIP].move(mirror_angle(rf_hip))
+    servos[LF_KNEE].move(mirror_angle(rf_knee))
+
+    servos[LR_HIP].move(mirror_angle(rr_hip))
+    servos[LR_KNEE].move(mirror_angle(rr_knee))
+
+
+def stand_pose(servos):
+    """
+    让机器人站起来（偏高一点的站姿）。
+    只设计右侧的站立角度，左侧自动镜像。
+    """
+
+    # 这里可以按你现在效果再调：
+    rf_hip  = 105
+    rf_knee = 170
+    rr_hip  = 105
+    rr_knee = 170
+
+    print("Go to stand pose (right side angles):")
+    print(f"  RF_HIP={rf_hip}, RF_KNEE={rf_knee}, "
+          f"RR_HIP={rr_hip}, RR_KNEE={rr_knee}")
+
+    move_right_and_mirror(servos, rf_hip, rf_knee, rr_hip, rr_knee)
+    time.sleep(1.5)
+
+
+def neutral_pose(servos):
+    """
+    简单的中立姿态，方便你从一个安全姿态开始。
+    同样只控制右侧，左侧镜像。
+    """
+    rf_hip  = 120
+    rf_knee = 120
+    rr_hip  = 120
+    rr_knee = 120
+
+    print("Go to neutral pose")
+    move_right_and_mirror(servos, rf_hip, rf_knee, rr_hip, rr_knee)
+    time.sleep(1.5)
+
 
 def main():
     servos = init_servos()
-    stand_from_known_start(servos)
+
+    # 先到一个中立姿态
+    neutral_pose(servos)
+
+    # 再站起来
+    stand_pose(servos)
+
+    print("Done.")
+
 
 if __name__ == "__main__":
     main()
