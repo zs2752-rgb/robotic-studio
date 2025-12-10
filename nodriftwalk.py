@@ -20,12 +20,12 @@ STAND_POSE = {
 }
 
 # ----------------- 步态参数（小步、防漂移用） -----------------
-LIFT_KNEE_DELTA   =20    # 抬脚时膝多弯多少（越大抬得越高）
+LIFT_KNEE_DELTA   =10    # 抬脚时膝多弯多少（越大抬得越高）
 LIFT_HIP_DELTA    = -8   # 抬脚时髋往前摆多少；如果发现往后走就改成 +4
-BODY_SHIFT_DELTA  = 20    # 身体前移量（越大实际前进越明显）
+BODY_SHIFT_DELTA  = 15    # 身体前移量（越大实际前进越明显）
 
-STEP_DURATION = 0.2      # 每个相位时间（秒）
-STEP_STEPS    = 15       # 每个相位插值步数（越小越硬朗）
+STEP_DURATION = 0.3      # 每个相位时间（秒）
+STEP_STEPS    = 20       # 每个相位插值步数（越小越硬朗）
 
 NUM_CYCLES    = 5       # 走几轮（每轮包含 8 个相位）
 
