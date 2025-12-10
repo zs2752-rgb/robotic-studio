@@ -67,7 +67,7 @@ def read_current_pose(servos):
 
 
 def go_to_pose_smooth(servos, start_pose, target_pose,
-                      duration=1, steps=10):
+                      duration=1, steps=3):
     """
     从 start_pose 平滑移动到 target_pose
     duration 越小、steps 越少 -> 动作越快、越有劲
