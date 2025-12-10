@@ -20,7 +20,7 @@ STAND_POSE = {
 
 # -------- 步态参数 --------
 # 抬脚高度
-LIFT_KNEE_DELTA = 10
+LIFT_KNEE_DELTA = 20
 # 髋关节前后摆动幅度（正负决定方向；如果整体往后走就反号）
 HIP_SWING_DELTA = +6
 
