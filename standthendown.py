@@ -88,13 +88,13 @@ def stand_up_with_preload(servos):
     current_pose = read_current_pose(servos)
 
     # 2. 预加载左上腿（7、8）：先让这条腿“蹲好一点”
-    print("\nPre-load left-front leg (7,8)...")
-    preload_hip  = 110   # 左上髋预加载角度
-    preload_knee = 70   # 左上膝预加载角度（比最终站立再弯一点）
+    #print("\nPre-load left-front leg (7,8)...")
+    #preload_hip  = 110   # 左上髋预加载角度
+    #preload_knee = 70   # 左上膝预加载角度（比最终站立再弯一点）
 
-    servos[7].move(preload_hip)
-    servos[8].move(preload_knee)
-    time.sleep(0.5)      # 给一点时间让电机到位、先用上力
+    #servos[7].move(preload_hip)
+    #servos[8].move(preload_knee)
+    #time.sleep(0.5)      # 给一点时间让电机到位、先用上力
 
     # 3. 再读一遍当前姿态，作为“站立插值”的起点
     print("\nPose after preload:")
