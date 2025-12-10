@@ -43,9 +43,9 @@ def build_stand_pose():
 
 
 # ---------- 3. 步态参数（小步、防漂移） ----------
-LIFT_KNEE_DELTA   = 8    # 抬脚时膝多弯多少
-LIFT_HIP_DELTA    = -4   # 抬脚时髋往前摆多少（反向走就改成 +4）
-BODY_SHIFT_DELTA  = 3    # 身体前移量
+LIFT_KNEE_DELTA   = 15    # 抬脚时膝多弯多少
+LIFT_HIP_DELTA    = -6   # 抬脚时髋往前摆多少（反向走就改成 +4）
+BODY_SHIFT_DELTA  = 15    # 身体前移量
 
 STEP_DURATION = 0.3      # 每个相位时间
 STEP_STEPS    = 18       # 每个相位插值步数
