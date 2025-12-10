@@ -67,7 +67,7 @@ def read_current_pose(servos):
 
 
 def go_to_pose_smooth(servos, start_pose, target_pose,
-                      duration=1.2, steps=50):
+                      duration=1, steps=10):
     """
     从 start_pose 平滑移动到 target_pose
     duration 越小、steps 越少 -> 动作越快、越有劲
@@ -90,7 +90,7 @@ def stand_up_with_preload(servos):
     # 2. 预加载左上腿（7、8）：先让这条腿“蹲好一点”
     print("\nPre-load left-front leg (7,8)...")
     preload_hip  = 105   # 左上髋预加载角度
-    preload_knee = 185   # 左上膝预加载角度（比最终站立再弯一点）
+    preload_knee = 70   # 左上膝预加载角度（比最终站立再弯一点）
 
     servos[7].move(preload_hip)
     servos[8].move(preload_knee)
