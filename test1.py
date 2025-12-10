@@ -1,40 +1,34 @@
 from pylx16a.lx16a import *
 import time
 
-PORT = "/dev/ttyUSB0"
+PORT = "/dev/ttyUSB0"   # 串口按你之前用的来
 
-# 电机 ID 布局（方便你以后看）：
-# 右上：1,2   右下：3,4   左下：5,6   左上：7,8
-HIP_IDS  = [1, 3, 5, 7]   # 各腿靠近身体的关节
-KNEE_IDS = [2, 4, 6, 8]   # 各腿靠近地面的关节
+# 机身俯视：
+# 右上：1,2    右下：3,4
+# 左下：5,6    左上：7,8
 
 ANGLE_MIN = 40
 ANGLE_MAX = 200
-ANGLE_SUM = ANGLE_MIN + ANGLE_MAX   # 240，中点 120
 
-# 现在约定：1–4 已经方向正确
-# 把 5,6,7,8 的方向在代码里翻转，让逻辑角度统一
-REVERSED_IDS = {5, 6, 7, 8}
+# ===== 在这里设定你想要的“站立姿态”的角度（舵机自己的角度） =====
+# 先给一个大概的示例，你可以一边试一边改：
+STAND_POSE = {
+    1: 110,   # 右上髋
+    2: 170,   # 右上膝
 
+    3: 110,   # 右下髋
+    4: 170,   # 右下膝
 
-# ---------- 角度转换 ----------
+    5: 110,   # 左下髋
+    6: 170,   # 左下膝
 
-def hw_to_logical(sid: int, hw_angle: float) -> float:
-    """硬件读到的角度 -> 逻辑角度"""
-    if sid in REVERSED_IDS:
-        return ANGLE_SUM - hw_angle
-    return hw_angle
+    7: 110,   # 左上髋
+    8: 170    # 左上膝
+}
 
-def logical_to_hw(sid: int, logical_angle: float) -> float:
-    """逻辑角度 -> 发给舵机的角度"""
-    if sid in REVERSED_IDS:
-        return ANGLE_SUM - logical_angle
-    return logical_angle
-
-
-# ---------- 初始化 ----------
 
 def init_servos():
+    """初始化 1~8 号舵机"""
     LX16A.initialize(PORT)
     servos = {}
     for sid in range(1, 9):
@@ -46,67 +40,46 @@ def init_servos():
     return servos
 
 
-# ---------- 姿态控制 ----------
-
-def read_current_logical_pose(servos):
-    """读取当前姿态（逻辑角度），返回 dict: {sid: logical_angle}"""
+def read_current_pose(servos):
+    """读取当前角度，返回 {id: angle}"""
     pose = {}
+    print("Current pose:")
     for sid, s in servos.items():
-        hw = s.get_physical_angle()
-        logical = hw_to_logical(sid, hw)
-        pose[sid] = logical
-        print(f"ID{sid}: hw={hw:.1f}°, logical={logical:.1f}°")
+        a = s.get_physical_angle()
+        pose[sid] = a
+        print(f"  ID{sid}: {a:.1f}°")
     return pose
 
 
 def go_to_pose_smooth(servos, start_pose, target_pose,
                       duration=3.0, steps=80):
-    """从 start_pose 平滑插值到 target_pose（逻辑角度）"""
+    """从 start_pose 平滑移动到 target_pose"""
     for step in range(steps + 1):
         alpha = step / steps
         for sid in range(1, 9):
             a0 = start_pose[sid]
             a1 = target_pose[sid]
-            a  = a0 + (a1 - a0) * alpha   # 线性插值
-            hw = logical_to_hw(sid, a)
-            servos[sid].move(hw)
+            a  = a0 + (a1 - a0) * alpha    # 线性插值
+            servos[sid].move(a)
         time.sleep(duration / steps)
 
 
-def make_stand_pose():
-    """构造一个“站立姿态”的逻辑角度字典"""
-    pose = {}
+def stand_up(servos):
+    # 1. 读当前姿态作为起点（避免突然跳）
+    current_pose = read_current_pose(servos)
 
-    # 站得比较高一点：髋稍微抬起，膝盖多弯一些
-    STAND_HIP  = 105   # 髋关节逻辑角
-    STAND_KNEE = 170   # 膝关节逻辑角
-
-    for sid in HIP_IDS:
-        pose[sid] = STAND_HIP
-    for sid in KNEE_IDS:
-        pose[sid] = STAND_KNEE
-
-    return pose
-
-
-def stand_up_from_current(servos):
-    print("Reading current pose...")
-    current_pose = read_current_logical_pose(servos)
-
-    print("\nBuilding stand pose...")
-    stand_pose = make_stand_pose()
+    # 2. 目标就是 STAND_POSE
+    target_pose = STAND_POSE
 
     print("\nStanding up...")
-    go_to_pose_smooth(servos, current_pose, stand_pose,
+    go_to_pose_smooth(servos, current_pose, target_pose,
                       duration=3.0, steps=80)
-    print("Stand up done.")
+    print("Done.")
 
-
-# ---------- main ----------
 
 def main():
     servos = init_servos()
-    stand_up_from_current(servos)
+    stand_up(servos)
 
 
 if __name__ == "__main__":
