@@ -89,7 +89,7 @@ def stand_up_with_preload(servos):
 
     # 2. 预加载左上腿（7、8）：先让这条腿“蹲好一点”
     print("\nPre-load left-front leg (7,8)...")
-    preload_hip  = 105   # 左上髋预加载角度
+    preload_hip  = 110   # 左上髋预加载角度
     preload_knee = 70   # 左上膝预加载角度（比最终站立再弯一点）
 
     servos[7].move(preload_hip)
