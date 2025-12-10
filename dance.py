@@ -28,7 +28,7 @@ HIP_SWING_DELTA = +5
 LEFT_GAIN  = 1.0   # 作用在左边两条腿（5,6,7,8）
 RIGHT_GAIN = 1.0   # 作用在右边两条腿（1,2,3,4）
 
-STEP_DURATION = 0.1   # 每个相位时间
+STEP_DURATION = 0.2  # 每个相位时间
 STEP_STEPS    = 5    # 每个相位插值步数
 NUM_CYCLES    = 10     # 走几轮（每轮两步：对角1 + 对角2）
 
