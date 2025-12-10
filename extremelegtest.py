@@ -52,9 +52,9 @@ servo4.move(150)
 
 time.sleep(3)
 servo5.move(130)
-servo6.move(150)
+servo6.move(160)
 
 time.sleep(3)
 servo7.move(100)
-servo8.move(150)
+servo8.move(60)
 time.sleep(3)
