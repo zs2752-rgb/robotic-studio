@@ -20,13 +20,13 @@ STAND_POSE = {
 
 # -------- 步态参数 --------
 # 抬脚高度
-LIFT_KNEE_DELTA = 20
+LIFT_KNEE_DELTA = 15
 # 髋关节前后摆动幅度（正负决定方向；如果整体往后走就反号）
 HIP_SWING_DELTA = +35
 
 # 左右修正系数：如果发现总是向一边转，可以微调
-LEFT_GAIN  = 1.35   # 作用在左边两条腿（5,6,7,8）
-RIGHT_GAIN = 0.65   # 作用在右边两条腿（1,2,3,4）
+LEFT_GAIN  = 1.3   # 作用在左边两条腿（5,6,7,8）
+RIGHT_GAIN = 0.7   # 作用在右边两条腿（1,2,3,4）
 
 STEP_DURATION = 0.2   # 每个相位时间
 STEP_STEPS    = 15    # 每个相位插值步数
