@@ -44,17 +44,17 @@ t = 0
 
 time.sleep(3)
 servo1.move(210)
-servo2.move(20)
+servo2.move(10)
 
 time.sleep(3)
 servo3.move(20)
-servo4.move(210)
+servo4.move(230)
 
 time.sleep(3)
 servo5.move(210)
-servo6.move(210)
+servo6.move(230)
 
 time.sleep(3)
 servo7.move(20)
-servo8.move(20)
+servo8.move(10)
 time.sleep(3)
