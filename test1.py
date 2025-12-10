@@ -34,14 +34,14 @@ ANGLE_SUM = ANGLE_MIN + ANGLE_MAX   # = 240，用来做镜像
 # 这些数字就是：机器人一开始你摆好姿态，然后每个舵机当前角度（0~240）；
 # 先随便填一个占位，等你有真实数值再改。
 HARDWARE_START_POSE = {
-    "RF_HIP": 120,   # 这里改成你实际量到的角度
-    "RF_KNEE": 120,
-    "RR_HIP": 120,
-    "RR_KNEE": 120,
-    "LR_HIP": 120,
-    "LR_KNEE": 120,
+    "RF_HIP": 110,   # 这里改成你实际量到的角度
+    "RF_KNEE": 100,
+    "RR_HIP": 130,
+    "RR_KNEE": 140,
+    "LR_HIP": 148,
+    "LR_KNEE": 150,
     "LF_HIP": 120,
-    "LF_KNEE": 120
+    "LF_KNEE": 70
 }
 
 # ====== 2. 定义“站立姿态”的逻辑角度（可以慢慢调）======
