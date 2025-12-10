@@ -19,12 +19,12 @@ STAND_POSE = {
 }
 
 # ---------- 步态参数（已经调快一点） ----------
-LIFT_KNEE_DELTA   = 22    # 抬脚高度
+LIFT_KNEE_DELTA   = 15    # 抬脚高度
 LIFT_HIP_DELTA    = +15    # 髋向前摆的量；如果发现往后走就改成 +6
 BODY_SHIFT_DELTA  = 15     # 身体前移量（越大迈步越大）
 
 STEP_DURATION = 0.2       # 每个相位 0.3 秒（比之前快一倍）
-STEP_STEPS    = 15        # 每个相位 18 步（更干脆）
+STEP_STEPS    = 14        # 每个相位 18 步（更干脆）
 
 NUM_CYCLES    = 4         # 走几轮
 
