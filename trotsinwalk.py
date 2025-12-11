@@ -23,8 +23,8 @@ STAND_POSE = {
 HIP_AMP   = 18.0    # 基本髋摆幅（所有腿的基础振幅）
 KNEE_LIFT = 20.0   # 抬腿时膝盖额外弯曲
 
-CYCLES          = 4      # 走多少个完整周期
-STEPS_PER_CYCLE = 20     # 每周期多少帧
+CYCLES          = 8      # 走多少个完整周期
+STEPS_PER_CYCLE = 30     # 每周期多少帧
 STEP_TIME       = 0.03   # 每帧间隔时间
 
 # 对角腿分组
