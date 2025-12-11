@@ -18,11 +18,11 @@ STAND_POSE = {
 }
 
 # ---------------- 步态参数 ----------------
-HIP_AMP   = 6.0
-KNEE_LIFT = 10.0
+HIP_AMP   = 20
+KNEE_LIFT = 15
 
 CYCLES = 3
-STEPS_PER_CYCLE = 60
+STEPS_PER_CYCLE = 20
 STEP_TIME = 0.03
 
 # 对角腿组
