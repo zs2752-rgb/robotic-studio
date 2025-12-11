@@ -16,7 +16,7 @@ STAND_POSE = {
     4: 180,  # 右后膝 RR knee
     5: 130,  # 左后髋 LR hip
     6: 180,  # 左后膝 LR knee
-    7: 100,  # 左前髋 LF hip
+    7: 130,  # 左前髋 LF hip
     8: 40,  # 左前膝 LF knee
 }
 
