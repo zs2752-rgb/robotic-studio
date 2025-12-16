@@ -5,11 +5,11 @@ from pylx16a.lx16a import *
 
 PORT = "/dev/ttyUSB0"
 
-# ---------------- 你的电机角度限位（按你实际改） ----------------
+# ----------------- 限位（按你实际） -----------------
 ANGLE_MIN = 40
 ANGLE_MAX = 200
 
-# ---------------- 站立姿态（你现在用的） ----------------
+# ----------------- 站立姿态（你的） -----------------
 STAND_POSE = {
     1: 130,  # RF hip
     2: 60,   # RF knee
@@ -17,48 +17,65 @@ STAND_POSE = {
     4: 180,  # RR knee
     5: 130,  # LR hip
     6: 180,  # LR knee
-    7: 100,  # LF hip
-    8: 5,   # LF knee
+    7: 130,  # LF hip
+    8: 60,   # LF knee
 }
 
-# ---------------- 腿与舵机映射 ----------------
-# leg: hip_id, knee_id
+# ----------------- 腿映射 -----------------
 LEG_MAP = {
-    "RF": (1, 2),
-    "RR": (3, 4),
-    "LR": (5, 6),
-    "LF": (7, 8),
+    "RF": (1, 2),  # right-front
+    "RR": (3, 4),  # right-rear
+    "LR": (5, 6),  # left-rear
+    "LF": (7, 8),  # left-front
 }
 
-# ---------------- 步态参数（你主要调这些） ----------------
-HIP_AMP = 20.0        # 髋前后摆幅（越大步越大）
-KNEE_LIFT = 50.0     # 抬腿时膝额外弯曲（越大抬得越高）
-STEP_TIME = 0.05     # 每帧间隔（越小越快）
-STEPS_PER_CYCLE = 20 # 每个周期的离散帧数（越大越平滑）
-CYCLES = 6           # 走多少个周期
+# ----------------- 步态节奏 -----------------
+STEP_TIME = 0.02
+STEPS_PER_CYCLE = 50
+CYCLES = 6
 
-# 左右/前后平衡微调（解决走歪/打转）
-# >1 代表更大幅度，<1 代表更小幅度
-HIP_GAIN = {
-    "RF": 1.0,
-    "RR": 1.0,
-    "LR": 1.0,
-    "LF": 1.0,
+# ----------------- 你要调的核心：每个电机的摆幅/方向/偏置 -----------------
+# AMP：摆幅大小（度）
+# DIR：方向 +1 或 -1（反向就改成 -1）
+# OFF：额外偏置（在 STAND_POSE 基础上再加/减一点）
+SERVO_AMP = {  # 你可以随便改每个电机的幅度
+    1: 8.0,   # hip
+    2: 14.0,  # knee
+    3: 8.0,
+    4: 14.0,
+    5: 8.0,
+    6: 14.0,
+    7: 8.0,
+    8: 14.0,
 }
 
-# 膝盖也可以微调抬腿高度
-KNEE_GAIN = {
-    "RF": 1.0,
-    "RR": 1.0,
-    "LR": 1.0,
-    "LF": 1.0,
+SERVO_DIR = {  # 反向就把对应 id 改成 -1
+    1: +1,
+    2: +1,
+    3: +1,
+    4: -1,   # 很多情况下后腿膝可能要反
+    5: +1,
+    6: -1,
+    7: +1,
+    8: +1,
 }
 
-# 对角组：trot
+SERVO_OFF = {  # 每个电机单独偏置（调站姿/让它更吃力或更省力）
+    1: 0.0,
+    2: 0.0,
+    3: 0.0,
+    4: 0.0,
+    5: 0.0,
+    6: 0.0,
+    7: 0.0,
+    8: 0.0,
+}
+
+# ----------------- trot 对角组 -----------------
 GROUP_A = ["LF", "RR"]
 GROUP_B = ["RF", "LR"]
 
-# ---------------- 工具函数 ----------------
+# ----------------- 工具函数 -----------------
 def init_servos():
     LX16A.initialize(PORT)
     servos = {}
@@ -82,7 +99,7 @@ def read_pose(servos):
         pose[sid] = servos[sid].get_physical_angle()
     return pose
 
-def smooth_to_pose(servos, target_pose, duration=1.0, steps=50):
+def smooth_to_pose(servos, target_pose, duration=1.0, steps=60):
     start = read_pose(servos)
     for k in range(steps + 1):
         alpha = k / steps
@@ -92,19 +109,9 @@ def smooth_to_pose(servos, target_pose, duration=1.0, steps=50):
             servos[sid].move(a)
         time.sleep(duration / steps)
 
-def send_leg_angles(servos, leg, hip_angle, knee_angle):
-    hip_id, knee_id = LEG_MAP[leg]
-    hip_angle = clamp(servos, hip_id, hip_angle)
-    knee_angle = clamp(servos, knee_id, knee_angle)
-    servos[hip_id].move(hip_angle)
-    servos[knee_id].move(knee_angle)
-    return hip_angle, knee_angle
-
-# ---------------- 主步态：对角小跑（trot） ----------------
-def trot_walk(servos, log_csv=False, csv_name="angle_log.csv"):
-    hip0 = {leg: STAND_POSE[LEG_MAP[leg][0]] for leg in LEG_MAP}
-    knee0 = {leg: STAND_POSE[LEG_MAP[leg][1]] for leg in LEG_MAP}
-
+# ----------------- 核心：每个电机单独控制幅度 -----------------
+def trot_with_per_servo_amp(servos, log_csv=True, csv_name="angle_log.csv"):
+    base = {sid: STAND_POSE[sid] + SERVO_OFF[sid] for sid in range(1, 9)}
     total_steps = CYCLES * STEPS_PER_CYCLE
     t0 = time.time()
 
@@ -119,25 +126,29 @@ def trot_walk(servos, log_csv=False, csv_name="angle_log.csv"):
         for step in range(total_steps):
             phi = 2.0 * math.pi * (step / STEPS_PER_CYCLE)
 
-            # 每帧记录的角度（指令角）
             angles = {i: None for i in range(1, 9)}
 
             for leg in ["LF", "RR", "RF", "LR"]:
                 phase = phi if leg in GROUP_A else (phi + math.pi)
                 swing = math.sin(phase)  # -1~1
 
-                # 髋：前后摆
-                hip_angle = hip0[leg] + (HIP_AMP * HIP_GAIN[leg]) * swing
-
-                # 膝：抬腿期（swing>0）更弯
-                lift = (KNEE_LIFT * KNEE_GAIN[leg]) * max(0.0, swing)
-                knee_angle = knee0[leg] + lift
-
-                hip_cmd, knee_cmd = send_leg_angles(servos, leg, hip_angle, knee_angle)
-
                 hip_id, knee_id = LEG_MAP[leg]
-                angles[hip_id] = hip_cmd
-                angles[knee_id] = knee_cmd
+
+                # hip：直接用正弦（前后摆）
+                hip_angle = base[hip_id] + SERVO_DIR[hip_id] * SERVO_AMP[hip_id] * swing
+
+                # knee：只在抬腿期变化（swing>0），更稳
+                lift = max(0.0, swing)
+                knee_angle = base[knee_id] + SERVO_DIR[knee_id] * SERVO_AMP[knee_id] * lift
+
+                hip_angle = clamp(servos, hip_id, hip_angle)
+                knee_angle = clamp(servos, knee_id, knee_angle)
+
+                servos[hip_id].move(hip_angle)
+                servos[knee_id].move(knee_angle)
+
+                angles[hip_id] = hip_angle
+                angles[knee_id] = knee_angle
 
             if writer:
                 writer.writerow([
@@ -152,21 +163,19 @@ def trot_walk(servos, log_csv=False, csv_name="angle_log.csv"):
         if f:
             f.close()
 
-# ---------------- main ----------------
 def main():
     servos = init_servos()
 
-    # 直接站到 STAND_POSE（从当前姿态平滑过去）
+    # 先站好（注意加了 SERVO_OFF 后的站姿）
+    stand_with_off = {sid: STAND_POSE[sid] + SERVO_OFF[sid] for sid in range(1, 9)}
     print("Go to STAND...")
-    smooth_to_pose(servos, STAND_POSE, duration=1.2, steps=60)
+    smooth_to_pose(servos, stand_with_off, duration=1.2, steps=70)
 
-    # 直接从站立开始走（可选记录到CSV）
-    print("Walking...")
-    trot_walk(servos, log_csv=True, csv_name="angle_log.csv")
+    print("Start walking (per-servo tunable)...")
+    trot_with_per_servo_amp(servos, log_csv=True, csv_name="angle_log.csv")
 
-    # 走完回到站立
     print("Back to STAND...")
-    smooth_to_pose(servos, STAND_POSE, duration=1.0, steps=50)
+    smooth_to_pose(servos, stand_with_off, duration=1.0, steps=60)
 
     print("Done.")
 
