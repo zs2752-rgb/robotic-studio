@@ -30,7 +30,7 @@ LEG_MAP = {
 }
 
 # ----------------- 步态节奏 -----------------
-STEP_TIME = 0.05
+STEP_TIME = 0.02
 STEPS_PER_CYCLE = 50
 CYCLES = 6
 
