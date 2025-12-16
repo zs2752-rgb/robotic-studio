@@ -6,8 +6,8 @@ from pylx16a.lx16a import *
 PORT = "/dev/ttyUSB0"
 
 # ----------------- 限位（按你实际） -----------------
-ANGLE_MIN = 40
-ANGLE_MAX = 200
+ANGLE_MIN = 0
+ANGLE_MAX = 240
 
 # ----------------- 站立姿态（你的） -----------------
 STAND_POSE = {
