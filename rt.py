@@ -17,8 +17,8 @@ STAND_POSE = {
     4: 180,  # RR knee
     5: 130,  # LR hip
     6: 180,  # LR knee
-    7: 130,  # LF hip
-    8: 60,   # LF knee
+    7: 100,  # LF hip
+    8: 5,   # LF knee
 }
 
 # ---------------- 腿与舵机映射 ----------------
